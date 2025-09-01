@@ -53,7 +53,6 @@ export default function TodoApp() {
   const dispatch = useAppDispatch();
   const {
     tasks,
-    loading,
     searchQuery,
     filterPriority,
     filterProject,
@@ -183,7 +182,7 @@ export default function TodoApp() {
     }
 
     filtered.sort((a, b) => {
-      let aValue: any, bValue: any;
+      let aValue: string | number, bValue: string | number;
 
       switch (sortBy) {
         case "title":
@@ -328,7 +327,6 @@ export default function TodoApp() {
   };
 
   const handleBulkDelete = () => {
-    const deletedCount = selectedTasks.length;
     dispatch(deleteTasks(selectedTasks));
     setBulkDeleteConfirm(false);
   };
