@@ -49,14 +49,13 @@ export function FilterControls(props: FilterControlsProps) {
     availableTags,
   } = props;
 
-  const removeTags = (tagToRemove: string) => {
+  const removeTag = (tagToRemove: string) => {
     onSelectedTagsChange(selectedTags.filter((tag) => tag !== tagToRemove));
   };
 
   return (
     <div className="space-y-4">
-      {/* Search  */}
-      <div className=" relative">
+      <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
         <Input
           placeholder="Search tasks, tags, or projects..."
@@ -66,7 +65,6 @@ export function FilterControls(props: FilterControlsProps) {
         />
       </div>
 
-      {/* filters */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Select value={filterPriority} onValueChange={onFilterPriorityChange}>
           <SelectTrigger>
@@ -124,7 +122,6 @@ export function FilterControls(props: FilterControlsProps) {
         </div>
       </div>
 
-      {/* Selected tags */}
       {selectedTags.length > 0 && (
         <div className="flex flex-wrap gap-2">
           <span className="text-sm text-muted-foreground">
@@ -138,7 +135,7 @@ export function FilterControls(props: FilterControlsProps) {
                 variant="ghost"
                 size="sm"
                 className="h-auto p-0 ml-1"
-                onClick={() => removeTags(tag)}
+                onClick={() => removeTag(tag)}
               >
                 <X className="h-3 w-3" />
               </Button>
@@ -147,7 +144,6 @@ export function FilterControls(props: FilterControlsProps) {
         </div>
       )}
 
-      {/* Avaiable Tags */}
       {availableTags.length > 0 && (
         <div className="space-y-2">
           <span className="text-sm text-muted-foreground">Available tags:</span>

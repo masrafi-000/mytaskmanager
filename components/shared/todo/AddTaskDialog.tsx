@@ -36,7 +36,6 @@ interface AddTaskDialogProps {
   onAddTask: (task: NewTask) => void;
   isSubmitting: boolean;
 }
-
 export default function AddTaskDialog(props: AddTaskDialogProps) {
   const { isOpen, onAddTask, onOpenChange, isSubmitting } = props;
 
@@ -53,12 +52,12 @@ export default function AddTaskDialog(props: AddTaskDialogProps) {
   const [errors, setErrors] = useState({ title: "" });
 
   const validateTask = () => {
-    const newErros = { title: "" };
+    const newErrors = { title: "" };
     if (!newTask.title.trim()) {
-      newErros.title = "Title is required";
+      newErrors.title = "Title is required";
     }
-    setErrors(newErros);
-    return !newErros.title;
+    setErrors(newErrors);
+    return !newErrors.title;
   };
 
   const handleSubmit = () => {
@@ -78,10 +77,7 @@ export default function AddTaskDialog(props: AddTaskDialogProps) {
 
   const addTag = () => {
     if (newTagInput.trim() && !newTask.tags.includes(newTagInput.trim())) {
-      setNewTask({
-        ...newTask,
-        tags: [...newTask.tags, newTagInput.trim()],
-      });
+      setNewTask({ ...newTask, tags: [...newTask.tags, newTagInput.trim()] });
       setNewTagInput("");
     }
   };
@@ -122,7 +118,7 @@ export default function AddTaskDialog(props: AddTaskDialogProps) {
               }
               placeholder="Enter task title..."
               className={errors.title ? "border-destructive" : ""}
-              onKeyDown={handleKeyPress}
+              onKeyPress={handleKeyPress}
             />
             {errors.title && (
               <p className="text-sm text-destructive mt-1">{errors.title}</p>
@@ -137,7 +133,7 @@ export default function AddTaskDialog(props: AddTaskDialogProps) {
               onChange={(e) =>
                 setNewTask({ ...newTask, description: e.target.value })
               }
-              placeholder="Enter task description"
+              placeholder="Enter task description..."
               rows={3}
             />
           </div>
@@ -161,6 +157,7 @@ export default function AddTaskDialog(props: AddTaskDialogProps) {
                 </SelectContent>
               </Select>
             </div>
+
             <div>
               <Label htmlFor="dueDate">Due Date</Label>
               <Input
@@ -188,47 +185,54 @@ export default function AddTaskDialog(props: AddTaskDialogProps) {
 
           <div>
             <Label htmlFor="tags">Tags</Label>
-            <Input
-              id="tags"
-              value={newTagInput}
-              onChange={(e) => setNewTagInput(e.target.value)}
-              placeholder="Add a tag..."
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  addTag();
-                }
-              }}
-            />
-            <Button type="button" variant="outline" size="sm" onClick={addTag}>
-              <Plus className="h-4 w-4" />
+            <div className="flex gap-2 mb-2">
+              <Input
+                id="tags"
+                value={newTagInput}
+                onChange={(e) => setNewTagInput(e.target.value)}
+                placeholder="Add a tag..."
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addTag();
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addTag}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {newTask.tags.map((tag) => (
+                <Badge key={tag} variant="secondary" className="text-xs">
+                  #{tag}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-auto p-0 ml-1"
+                    onClick={() => removeTag(tag)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </Badge>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSubmit} disabled={isSubmitting}>
+              {isSubmitting ? "Adding..." : "Add Task"}
             </Button>
           </div>
-          <div className="flex flex-wrap gap-1">
-            {newTask.tags.map((tag) => (
-              <Badge key={tag} variant="secondary" className="text-xs">
-                #{tag}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-auto p-0 ml-1"
-                  onClick={() => removeTag(tag)}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </Badge>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-2 pt-4">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} disabled={isSubmitting}>
-            {isSubmitting ? "Adding..." : "Add Task"}
-          </Button>
         </div>
       </DialogContent>
     </Dialog>

@@ -93,7 +93,7 @@ const todoSlice = createSlice({
     setSearchQuery: (state, action: PayloadAction<string>) => {
       state.searchQuery = action.payload;
     },
-    setFilterpriority: (state, action: PayloadAction<string>) => {
+    setFilterPriority: (state, action: PayloadAction<string>) => {
       state.filterPriority = action.payload;
     },
     setFilterProject: (state, action: PayloadAction<string>) => {
@@ -115,7 +115,7 @@ const todoSlice = createSlice({
       state.sortOrder = action.payload;
     },
     setDateFilter: (state, action: PayloadAction<string>) => {
-        state.dateFilter =action.payload
+      state.dateFilter = action.payload;
     },
     toggleTaskSelection: (state, action: PayloadAction<string>) => {
       const taskId = action.payload;
@@ -137,6 +137,24 @@ const todoSlice = createSlice({
   },
 });
 
-export const { addTask, updateTask, deleteTask, deleteTasks, toggleComplete,setSearchQuery, setFilterpriority, setFilterProject, setSelectedTags,setActiveTab, setSortBy, setSortOrder, setDateFilter, toggleTaskSelection, selectAllTasks, clearSelection, setLoading  } = todoSlice.actions;
+export const {
+  addTask,
+  updateTask,
+  deleteTask,
+  deleteTasks,
+  toggleComplete,
+  setSearchQuery,
+  setFilterPriority,
+  setFilterProject,
+  setSelectedTags,
+  setActiveTab,
+  setSortBy,
+  setSortOrder,
+  setDateFilter,
+  toggleTaskSelection,
+  selectAllTasks,
+  clearSelection,
+  setLoading,
+} = todoSlice.actions;
 
 export default todoSlice.reducer;

@@ -1,19 +1,42 @@
 "use client";
 
 import { ThemeToggle } from "@/components/shared/theme-toggle";
+import AddTaskDialog from "@/components/shared/todo/AddTaskDialog";
+import EditTaskDialog from "@/components/shared/todo/EditTaskDialog";
 import { FilterControls } from "@/components/shared/todo/FilterControls";
+import TaskList from "@/components/shared/todo/TaskList";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks/redux";
 import {
-  setFilterpriority,
+  addTask,
+  clearSelection,
+  deleteTask,
+  deleteTasks,
+  selectAllTasks,
+  setActiveTab,
+  setFilterPriority,
   setFilterProject,
   setSearchQuery,
   setSelectedTags,
   setSortBy,
   setSortOrder,
+  Task,
+  toggleComplete,
+  toggleTaskSelection,
+  updateTask,
 } from "@/lib/store/todoSlice";
 import { TabsContent } from "@radix-ui/react-tabs";
 import {
@@ -24,7 +47,7 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export default function TodoApp() {
   const dispatch = useAppDispatch();
@@ -41,6 +64,31 @@ export default function TodoApp() {
     dateFilter,
     selectedTasks,
   } = useAppSelector((state) => state.todos);
+
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "n") {
+        e.preventDefault();
+        setIsAddDialogOpen(true);
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        const searchInput = document.querySelector(
+          'input[placeholder*="Search"]'
+        ) as HTMLInputElement;
+        searchInput?.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const filteredTasks = useMemo(() => {
     let filtered = tasks.filter((task) => {
@@ -81,7 +129,7 @@ export default function TodoApp() {
             break;
           case "this-week":
             const weekStart = new Date(today);
-            weekStart.setDate(today.getDate() - today.getDate());
+            weekStart.setDate(today.getDate() - today.getDay());
             const weekEnd = new Date(weekStart);
             weekEnd.setDate(weekStart.getDate() + 6);
             matchesDate = taskDate
@@ -90,7 +138,8 @@ export default function TodoApp() {
             break;
           case "overdue":
             matchesDate = taskDate
-              ? taskDate < today && !task.completed
+              ? taskDate.toDateString() < today.toDateString() &&
+                !task.completed
               : false;
             break;
           case "no-date":
@@ -98,6 +147,7 @@ export default function TodoApp() {
             break;
         }
       }
+
       return (
         matchesSearch &&
         matchesPriority &&
@@ -107,7 +157,6 @@ export default function TodoApp() {
       );
     });
 
-    // Appyly tab filtering
     switch (activeTab) {
       case "pending":
         filtered = filtered.filter((task) => !task.completed);
@@ -116,55 +165,70 @@ export default function TodoApp() {
         filtered = filtered.filter((task) => task.completed);
         break;
       case "today":
-        const today = new Date().toDateString();
+        const todayTab = new Date().toDateString();
         filtered = filtered.filter(
           (task) =>
-            task.due_date && new Date(task.due_date).toDateString() === today
+            task.due_date && new Date(task.due_date).toDateString() === todayTab
         );
         break;
       case "overdue":
-        const now = new Date();
+        const todayOverdue = new Date().toDateString();
         filtered = filtered.filter(
           (task) =>
-            task.due_date && new Date(task.due_date) < now && !task.completed
+            task.due_date &&
+            new Date(task.due_date).toDateString() < todayOverdue &&
+            !task.completed
         );
         break;
     }
 
-    // apply sorting
-    // filtered.sort((a, b) => {
-    //     let aValue: any, bValue: any
+    filtered.sort((a, b) => {
+      let aValue: any, bValue: any;
 
-    //     switch (sortBy) {
-    //         case "title":
-    //             aValue = a.title.toLowerCase()
+      switch (sortBy) {
+        case "title":
+          aValue = a.title.toLowerCase();
+          bValue = b.title.toLowerCase();
+          break;
+        case "due_date":
+          aValue = a.due_date
+            ? new Date(a.due_date).getTime()
+            : Number.POSITIVE_INFINITY;
+          bValue = b.due_date
+            ? new Date(b.due_date).getTime()
+            : Number.POSITIVE_INFINITY;
+          break;
+        case "priority":
+          const priorityOrder = { high: 3, medium: 2, low: 1 };
+          aValue = priorityOrder[a.priority];
+          bValue = priorityOrder[b.priority];
+          break;
+        case "created_at":
+        default:
+          aValue = new Date(a.created_at).getTime();
+          bValue = new Date(b.created_at).getTime();
+          break;
+      }
 
-    //             break;
+      if (sortOrder === "asc") {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+    });
 
-    //         default:
-    //             break;
-    //     }
-    // })
-  }, []);
-
-  const taskCounts = useMemo(() => {
-    const today = new Date().toDateString();
-    const now = new Date();
-
-    return {
-      all: tasks.length,
-      pending: tasks.filter((task) => !task.completed).length,
-      completed: tasks.filter((task) => task.completed).length,
-      today: tasks.filter(
-        (task) =>
-          task.due_date && new Date(task.due_date).toDateString() === today
-      ).length,
-      overdue: tasks.filter(
-        (task) =>
-          task.due_date && new Date(task.due_date) < now && !task.completed
-      ).length,
-    };
-  }, [tasks]);
+    return filtered;
+  }, [
+    tasks,
+    searchQuery,
+    filterPriority,
+    filterProject,
+    selectedTags,
+    activeTab,
+    sortBy,
+    sortOrder,
+    dateFilter,
+  ]);
 
   const availableProjects = useMemo(() => {
     const projects = tasks
@@ -178,14 +242,101 @@ export default function TodoApp() {
     return Array.from(new Set(allTags));
   }, [tasks]);
 
-  //   const handleSelectAll = () => {
-  //     const visibleTaskIds =
-  //   }
+  const taskCounts = useMemo(() => {
+    const today = new Date().toDateString();
+
+    return {
+      all: tasks.length,
+      pending: tasks.filter((task) => !task.completed).length,
+      completed: tasks.filter((task) => task.completed).length,
+      today: tasks.filter(
+        (task) =>
+          task.due_date && new Date(task.due_date).toDateString() === today
+      ).length,
+      overdue: tasks.filter(
+        (task) =>
+          task.due_date &&
+          new Date(task.due_date).toDateString() < today &&
+          !task.completed
+      ).length,
+    };
+  }, [tasks]);
+
+  const handleAddTask = (newTaskData: {
+    title: string;
+    description: string;
+    priority: "low" | "medium" | "high";
+    dueDate: string;
+    tags: string[];
+    project: string;
+  }) => {
+    setIsSubmitting(true);
+
+    dispatch(
+      addTask({
+        title: newTaskData.title.trim(),
+        description: newTaskData.description.trim(),
+        priority: newTaskData.priority,
+        due_date: newTaskData.dueDate || null,
+        tags: newTaskData.tags,
+        project: newTaskData.project.trim() || null,
+        completed: false,
+      })
+    );
+
+    setIsAddDialogOpen(false);
+    setIsSubmitting(false);
+  };
+
+  const handleUpdateTask = (updatedTask: Task) => {
+    dispatch(updateTask({ id: updatedTask.id, updates: updatedTask }));
+
+    setEditingTask(null);
+  };
+
+  const handleDeleteTask = (id: string) => {
+    dispatch(deleteTask(id));
+
+    setTaskToDelete(null);
+  };
+
+  const handleToggleComplete = (id: string) => {
+    dispatch(toggleComplete(id));
+  };
+
+  const handleToggleSelection = (taskId: string) => {
+    dispatch(toggleTaskSelection(taskId));
+  };
+
+  const handleSelectAll = () => {
+    const visibleTaskIds = filteredTasks.map((task) => task.id);
+    dispatch(selectAllTasks(visibleTaskIds));
+  };
+
+  const handleClearSelection = () => {
+    dispatch(clearSelection());
+  };
+
+  const handleBulkMarkComplete = () => {
+    selectedTasks.forEach((taskId) => {
+      const task = tasks.find((t) => t.id === taskId);
+      if (task && !task.completed) {
+        dispatch(updateTask({ id: taskId, updates: { completed: true } }));
+      }
+    });
+    dispatch(clearSelection());
+  };
+
+  const handleBulkDelete = () => {
+    const deletedCount = selectedTasks.length;
+    dispatch(deleteTasks(selectedTasks));
+    setBulkDeleteConfirm(false);
+  };
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-6 max-w-4xl">
-        {/* header */}
+        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
@@ -197,7 +348,7 @@ export default function TodoApp() {
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Button className="gap-2">
+            <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
               <Plus className="h-4 w-4" />
               <span className="hidden sm:inline">Add Task</span>
             </Button>
@@ -248,7 +399,7 @@ export default function TodoApp() {
           </Card>
           <Card className="text-center">
             <CardContent className="p-3 sm:p-4">
-              <div className="text-lg sm:text-2xl font-bold text-orange-600">
+              <div className="text-lg sm:text-2xl font-bold text-red-600">
                 {taskCounts.overdue}
               </div>
               <div className="text-xs sm:text-sm text-muted-foreground">
@@ -264,13 +415,12 @@ export default function TodoApp() {
             <CardTitle className="text-lg">Filters & Search</CardTitle>
           </CardHeader>
           <CardContent>
-            {/* FilterControl will be added soon */}
             <FilterControls
               searchQuery={searchQuery}
               onSearchChange={(query) => dispatch(setSearchQuery(query))}
               filterPriority={filterPriority}
               onFilterPriorityChange={(priority) =>
-                dispatch(setFilterpriority(priority))
+                dispatch(setFilterPriority(priority))
               }
               filterProject={filterProject}
               onFilterProjectChange={(project) =>
@@ -278,17 +428,17 @@ export default function TodoApp() {
               }
               selectedTags={selectedTags}
               onSelectedTagsChange={(tags) => dispatch(setSelectedTags(tags))}
-              sortOrder={sortOrder}
-              onSortOrderChange={(order) => dispatch(setSortOrder(order))}
               sortBy={sortBy}
               onSortByChange={(sort) => dispatch(setSortBy(sort))}
+              sortOrder={sortOrder}
+              onSortOrderChange={(order) => dispatch(setSortOrder(order))}
               availableProjects={availableProjects}
               availableTags={availableTags}
             />
           </CardContent>
         </Card>
 
-        {/* BulkActions */}
+        {/* Bulk Actions */}
         {selectedTasks.length > 0 && (
           <Card className="mb-6 border-primary/20 bg-primary/5">
             <CardContent className="p-4">
@@ -297,12 +447,14 @@ export default function TodoApp() {
                   <Badge variant="secondary">
                     {selectedTasks.length} selected
                   </Badge>
-                  <Button variant="outline" size="sm">
-                    {/* onClick={handleSelectAll} */}
+                  <Button variant="outline" size="sm" onClick={handleSelectAll}>
                     Select All Visible
                   </Button>
-                  <Button variant="outline" size="sm">
-                    {/* onClick={handleClearSelection} */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleClearSelection}
+                  >
                     Clear Selection
                   </Button>
                 </div>
@@ -310,18 +462,20 @@ export default function TodoApp() {
                   <Button
                     variant="outline"
                     size="sm"
+                    onClick={handleBulkMarkComplete}
                     className="gap-2 bg-transparent"
                   >
-                    {/* onClick={handleBulkMarkComplete} */}
                     <Check className="h-4 w-4" />
+                    Mark Complete
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
+                    onClick={() => setBulkDeleteConfirm(true)}
                     className="gap-2 text-destructive hover:text-destructive"
                   >
-                    {/* onClick={() => setBulkDeleteConfirm(true)} */}
                     <Trash2 className="h-4 w-4" />
+                    Delete
                   </Button>
                 </div>
               </div>
@@ -329,9 +483,13 @@ export default function TodoApp() {
           </Card>
         )}
 
-        {/* task tabs */}
-        <Tabs>
-          <div className=" space-y-6">
+        {/* Task Tabs */}
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => dispatch(setActiveTab(value))}
+          className="space-y-6"
+        >
+          <div className="overflow-x-auto">
             <TabsList className="grid w-full grid-cols-5 min-w-[500px]">
               <TabsTrigger
                 value="all"
@@ -386,8 +544,8 @@ export default function TodoApp() {
             </TabsList>
           </div>
 
-          <TabsContent value={activeTab} className=" space-y-4">
-            {/* <TaskList
+          <TabsContent value={activeTab} className="space-y-4">
+            <TaskList
               tasks={filteredTasks}
               selectedTasks={selectedTasks}
               onToggleComplete={handleToggleComplete}
@@ -395,11 +553,71 @@ export default function TodoApp() {
               onDelete={setTaskToDelete}
               onToggleSelection={handleToggleSelection}
               activeTab={activeTab}
-            /> */}
+            />
           </TabsContent>
         </Tabs>
 
         {/* Dialogs */}
+        <AddTaskDialog
+          isOpen={isAddDialogOpen}
+          onOpenChange={setIsAddDialogOpen}
+          onAddTask={handleAddTask}
+          isSubmitting={isSubmitting}
+        />
+
+        <EditTaskDialog
+          task={editingTask}
+          onSave={handleUpdateTask}
+          onCancel={() => setEditingTask(null)}
+        />
+
+        {/* Delete Confirmation */}
+        <AlertDialog
+          open={!!taskToDelete}
+          onOpenChange={() => setTaskToDelete(null)}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Task</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this task? This action cannot be
+                undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => taskToDelete && handleDeleteTask(taskToDelete)}
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Bulk Delete Confirmation */}
+        <AlertDialog
+          open={bulkDeleteConfirm}
+          onOpenChange={setBulkDeleteConfirm}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Selected Tasks</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete {selectedTasks.length} selected
+                task
+                {selectedTasks.length > 1 ? "s" : ""}? This action cannot be
+                undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleBulkDelete}>
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
