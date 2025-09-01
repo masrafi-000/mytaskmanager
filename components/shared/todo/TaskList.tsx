@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import type { Task } from "@/lib/store/todoSlice";
-import { AlertCircle, CheckSquare, Clock } from "lucide-react";
+import { AlertCircle, CheckSquare, Clock, FileCheck2, Hourglass } from "lucide-react";
 import TaskCard from "./TaskCard";
 
 interface TaskListProps {
@@ -28,7 +28,17 @@ export default function TaskList(props: TaskListProps) {
     return (
       <Card className="border-dashed">
         <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-          {activeTab === "completed" ? (
+          {activeTab === "pending" ? (
+            <>
+              <Hourglass className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium text-muted-foreground mb-2">
+                No pending tasks
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {`Here you’ll find your pending tasks.`}
+              </p>
+            </>
+          ) : activeTab === "completed" ? (
             <>
               <CheckSquare className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium text-muted-foreground mb-2">
@@ -60,7 +70,7 @@ export default function TaskList(props: TaskListProps) {
             </>
           ) : (
             <>
-              <CheckSquare className="h-12 w-12 text-muted-foreground mb-4" />
+              <FileCheck2 className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium text-muted-foreground mb-2">
                 No tasks yet
               </h3>

@@ -109,7 +109,7 @@ export default function AddTaskDialog(props: AddTaskDialogProps) {
 
         <div className="space-y-4">
           <div>
-            <Label htmlFor="title">Title *</Label>
+            <Label className="pb-2" htmlFor="title">Title<span className="text-red-600">*</span></Label>
             <Input
               id="title"
               value={newTask.title}
@@ -118,7 +118,7 @@ export default function AddTaskDialog(props: AddTaskDialogProps) {
               }
               placeholder="Enter task title..."
               className={errors.title ? "border-destructive" : ""}
-              onKeyPress={handleKeyPress}
+              onKeyDown={handleKeyPress}
             />
             {errors.title && (
               <p className="text-sm text-destructive mt-1">{errors.title}</p>
@@ -126,7 +126,7 @@ export default function AddTaskDialog(props: AddTaskDialogProps) {
           </div>
 
           <div>
-            <Label htmlFor="description">Description</Label>
+            <Label className=" pb-2" htmlFor="description">Description</Label>
             <Textarea
               id="description"
               value={newTask.description}
@@ -140,7 +140,7 @@ export default function AddTaskDialog(props: AddTaskDialogProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="priority">Priority</Label>
+              <Label className="pb-2" htmlFor="priority">Priority</Label>
               <Select
                 value={newTask.priority}
                 onValueChange={(value: "low" | "medium" | "high") =>
@@ -159,7 +159,7 @@ export default function AddTaskDialog(props: AddTaskDialogProps) {
             </div>
 
             <div>
-              <Label htmlFor="dueDate">Due Date</Label>
+              <Label className="pb-2" htmlFor="dueDate">Due Date</Label>
               <Input
                 id="dueDate"
                 type="date"
@@ -172,7 +172,7 @@ export default function AddTaskDialog(props: AddTaskDialogProps) {
           </div>
 
           <div>
-            <Label htmlFor="project">Project</Label>
+            <Label className="pb-2" htmlFor="project">Project</Label>
             <Input
               id="project"
               value={newTask.project}
@@ -184,7 +184,7 @@ export default function AddTaskDialog(props: AddTaskDialogProps) {
           </div>
 
           <div>
-            <Label htmlFor="tags">Tags</Label>
+            <Label className="pb-2" htmlFor="tags">Tags</Label>
             <div className="flex gap-2 mb-2">
               <Input
                 id="tags"

@@ -44,6 +44,8 @@ import {
   Check,
   CheckSquare,
   Clock,
+  FileCheck2,
+  Hourglass,
   Plus,
   Trash2,
 } from "lucide-react";
@@ -493,7 +495,7 @@ export default function TodoApp() {
                 value="all"
                 className="flex items-center gap-2 text-xs sm:text-sm"
               >
-                <CheckSquare className="h-4 w-4" />
+                <FileCheck2 className="h-4 w-4" />
                 <span className="hidden sm:inline">All</span>
                 <Badge variant="secondary" className="text-xs">
                   {taskCounts.all}
@@ -503,7 +505,7 @@ export default function TodoApp() {
                 value="pending"
                 className="flex items-center gap-2 text-xs sm:text-sm"
               >
-                <Clock className="h-4 w-4" />
+                <Hourglass className="h-4 w-4" />
                 <span className="hidden sm:inline">Pending</span>
                 <Badge variant="secondary" className="text-xs">
                   {taskCounts.pending}
