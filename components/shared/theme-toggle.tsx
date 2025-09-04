@@ -17,8 +17,8 @@ export function ThemeToggle() {
     return (
       <Button
         variant="outline"
-        size="icon"
-        className="bg-background/80 backdrop-blur-sm border-border hover:bg-accent hover:text-accent-foreground transition-all duration-200"
+        size="sm"
+        className="bg-background/80 backdrop-blur-sm border-border hover:bg-accent hover:text-accent-foreground transition-all duration-200 cursor-pointer"
       >
         <Sun className="h-4 w-4 transition-transform duration-200 rotate-0 scale-100" />
         <span className="sr-only">Toggle theme</span>
@@ -33,9 +33,9 @@ export function ThemeToggle() {
   return (
     <Button
       variant="outline"
-      size="icon"
+      size="sm"
       onClick={toggleTheme}
-      className="bg-background/80 backdrop-blur-sm border-border hover:bg-accent hover:text-accent-foreground transition-all duration-200"
+      className="bg-background/80 backdrop-blur-sm border-border hover:bg-accent hover:text-accent-foreground transition-all duration-200 cursor-pointer"
     >
       {theme === "dark" ? (
         <Sun className="h-4 w-4 transition-transform duration-200 rotate-0 scale-100" />

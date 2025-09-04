@@ -75,14 +75,13 @@ export default function SignUpPage() {
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? "Creating account..." : "Sign up"}
                 </Button>
-                <p className="grid grid-cols-3 items-center gap-2">
-                  <div className="w-full border-t-1 border-t-black"></div>{" "}
-                  <div className="text-sm text-gray-700 text-center">Or sign-up with</div>
-                  <div className="w-full border-t-1 border-t-black"></div>
+                <hr />
+                <p className="text-center text-sm text-gray-700">
+                  Or sign-up with
                 </p>
                 <div className="grid grid-cols-3 items-center gap-3">
                   <button className="w-full h-10 flex items-center justify-center gap-1 rounded-full bg-white/15 backdrop-blur-md border border-white/20 shadow-md cursor-pointer transform transition-transform duration-200 hover:scale-105 hover:shadow-xl ">
-                    <BsLinkedin size={20} className="text-[#3b5998]" />
+                    <BsLinkedin size={20} className="text-[#0077B5]" />
                     <span className="text-sm font-medium">Linkedin</span>
                   </button>
                   <button className="w-full h-10 flex items-center justify-center space-x-2 rounded-full bg-white/15 backdrop-blur-md border border-white/20 shadow-md cursor-pointer transform transition-transform duration-200 hover:scale-105 hover:shadow-xl ">

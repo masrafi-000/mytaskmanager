@@ -63,6 +63,9 @@ export function FilterControls(props: FilterControlsProps) {
           onChange={(e) => onSearchChange(e.target.value)}
           className="pl-10"
         />
+        <kbd className=" absolute right-3 top-1/2 transform -translate-y-1/2 hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+          <span>⌘</span>K
+        </kbd>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

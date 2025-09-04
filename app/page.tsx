@@ -46,9 +46,13 @@ import {
   Clock,
   FileCheck2,
   Hourglass,
+  LogIn,
+  LogOut,
   Plus,
   Trash2,
+  User,
 } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 export default function TodoApp() {
@@ -74,6 +78,7 @@ export default function TodoApp() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      
       if ((e.metaKey || e.ctrlKey) && e.key === "n") {
         e.preventDefault();
         setIsAddDialogOpen(true);
@@ -84,6 +89,12 @@ export default function TodoApp() {
           'input[placeholder*="Search"]'
         ) as HTMLInputElement;
         searchInput?.focus();
+      }
+
+      if(e.key === "Escape"){
+        setIsAddDialogOpen(false)
+        setEditingTask(null)
+        clearSelection()
       }
     };
 
@@ -346,12 +357,30 @@ export default function TodoApp() {
               Stay organized and productive with your personal task manager
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
+            <div>
+              <User className="h-4 w-4" />
+              {/* {User?.email} */}
+            </div>
+            <div className="flex items-center gap-2"> 
+
             <ThemeToggle />
-            <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+            <Button size='sm' onClick={() => setIsAddDialogOpen(true)} className="gap-2 cursor-pointer">
               <Plus className="h-4 w-4" />
               <span className="hidden sm:inline">Add Task</span>
+              <kbd className="hidden sm:inline-flex px-1.5 font-mono h-5 select-none items-center gap-1 rounded border bg-muted text-[10px] font-medium text-muted-foreground ">
+                <span>⌘</span>N
+              </kbd>
             </Button>
+            </div>
+            <div>
+              <Button variant='outline' size="sm" className=" bg-transparent cursor-pointer">
+                <Link className="flex items-center gap-2" href="/auth/login">
+                <LogIn className="h-4 w-4" />
+                Login
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
 
