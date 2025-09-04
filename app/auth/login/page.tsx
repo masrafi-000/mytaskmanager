@@ -13,6 +13,9 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { FcGoogle } from "react-icons/fc";
+import {  SiGithub } from "react-icons/si";
+import { BsLinkedin } from "react-icons/bs";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -39,9 +42,11 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin}>
-              <div className="flex flex-col gap-6">
+              <div className="flex flex-col space-y-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">
+                    Email<span className="text-red-500">*</span>
+                  </Label>
                   <Input
                     id="email"
                     type="email"
@@ -52,7 +57,9 @@ export default function LoginPage() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">
+                    Password<span className="text-red-500">*</span>
+                  </Label>
                   <Input
                     id="password"
                     type="password"
@@ -65,6 +72,25 @@ export default function LoginPage() {
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? "Logging in..." : "Login"}
                 </Button>
+                <p className="grid grid-cols-3 items-center gap-2">
+                  <div className="w-full border-t-1 border-t-black"></div>{" "}
+                  <div className="text-sm text-center text-gray-700">Or login with</div>
+                  <div className="w-full border-t-1 border-t-black"></div>
+                </p>
+                <div className="grid grid-cols-3 items-center gap-3">
+                  <button className="w-full h-10 flex items-center justify-center gap-1 rounded-full bg-white/15 backdrop-blur-md border border-white/20 shadow-md cursor-pointer transform transition-transform duration-200 hover:scale-105 hover:shadow-xl ">
+                    <BsLinkedin size={20} className="text-[#3b5998]" />
+                    <span className="text-sm font-medium">Linkedin</span>
+                  </button>
+                  <button className="w-full h-10 flex items-center justify-center space-x-2 rounded-full bg-white/15 backdrop-blur-md border border-white/20 shadow-md cursor-pointer transform transition-transform duration-200 hover:scale-105 hover:shadow-xl ">
+                    <FcGoogle size={22} />
+                    <span className="text-sm font-medium">Google</span>
+                  </button>
+                  <button className="w-full h-10 flex items-center justify-center gap-2 rounded-full bg-white/15 backdrop-blur-md border border-white/20 shadow-md cursor-pointer transform transition-transform duration-200 hover:scale-105 hover:shadow-xl ">
+                    <SiGithub size={22} />
+                    <span className="text-sm font-medium">Github</span>
+                  </button>
+                </div>
               </div>
               <div className="mt-4 text-center text-sm">
                 don&apos;t have an account?{" "}

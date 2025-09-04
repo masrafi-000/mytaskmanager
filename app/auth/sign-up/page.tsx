@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -9,10 +10,18 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@radix-ui/react-label";
+import Link from "next/link";
 import { useState } from "react";
+import { BsLinkedin } from "react-icons/bs";
+import { FcGoogle } from "react-icons/fc";
+import { SiGithub } from "react-icons/si";
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [repeatPassword, setRepeatPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
@@ -24,9 +33,11 @@ export default function SignUpPage() {
           </CardHeader>
           <CardContent>
             <form action="">
-              <div>
-                <div>
-                  <Label htmlFor="email">Email</Label>
+              <div className="flex flex-col gap-3">
+                <div className="grid gap-2">
+                  <Label htmlFor="email">
+                    Email<span className="text-red-500">*</span>
+                  </Label>
                   <Input
                     id="email"
                     type="email"
@@ -36,6 +47,62 @@ export default function SignUpPage() {
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="password">
+                    Password<span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="repeat-password">
+                    Repeat Password<span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="repeat-password"
+                    type="password"
+                    required
+                    value={repeatPassword}
+                    onChange={(e) => setRepeatPassword(e.target.value)}
+                  />
+                </div>
+                {error && <p className="text-sm text-red-500">{error}</p>}
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Creating account..." : "Sign up"}
+                </Button>
+                <p className="grid grid-cols-3 items-center gap-2">
+                  <div className="w-full border-t-1 border-t-black"></div>{" "}
+                  <div className="text-sm text-gray-700 text-center">Or sign-up with</div>
+                  <div className="w-full border-t-1 border-t-black"></div>
+                </p>
+                <div className="grid grid-cols-3 items-center gap-3">
+                  <button className="w-full h-10 flex items-center justify-center gap-1 rounded-full bg-white/15 backdrop-blur-md border border-white/20 shadow-md cursor-pointer transform transition-transform duration-200 hover:scale-105 hover:shadow-xl ">
+                    <BsLinkedin size={20} className="text-[#3b5998]" />
+                    <span className="text-sm font-medium">Linkedin</span>
+                  </button>
+                  <button className="w-full h-10 flex items-center justify-center space-x-2 rounded-full bg-white/15 backdrop-blur-md border border-white/20 shadow-md cursor-pointer transform transition-transform duration-200 hover:scale-105 hover:shadow-xl ">
+                    <FcGoogle size={22} />
+                    <span className="text-sm font-medium">Google</span>
+                  </button>
+                  <button className="w-full h-10 flex items-center justify-center gap-2 rounded-full bg-white/15 backdrop-blur-md border border-white/20 shadow-md cursor-pointer transform transition-transform duration-200 hover:scale-105 hover:shadow-xl ">
+                    <SiGithub size={22} />
+                    <span className="text-sm font-medium">Github</span>
+                  </button>
+                </div>
+              </div>
+              <div className="mt-4 text-center text-sm">
+                Already have an account?{" "}
+                <Link
+                  href="/auth/login"
+                  className="underline underline-offset-4"
+                >
+                  Login
+                </Link>
               </div>
             </form>
           </CardContent>
