@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks/redux";
+import { logout } from "@/lib/store/authSlice";
 import {
   addTask,
   clearSelection,
@@ -70,6 +71,8 @@ export default function TodoApp() {
     selectedTasks,
   } = useAppSelector((state) => state.todos);
 
+  const { user } = useAppSelector((state) => state.auth);
+
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -78,7 +81,6 @@ export default function TodoApp() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      
       if ((e.metaKey || e.ctrlKey) && e.key === "n") {
         e.preventDefault();
         setIsAddDialogOpen(true);
@@ -91,16 +93,25 @@ export default function TodoApp() {
         searchInput?.focus();
       }
 
-      if(e.key === "Escape"){
-        setIsAddDialogOpen(false)
-        setEditingTask(null)
-        clearSelection()
+      if (e.key === "Escape") {
+        setIsAddDialogOpen(false);
+        setEditingTask(null);
+        clearSelection();
       }
     };
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  // Check if user is already logged in from localStorage
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token && !user) {
+      // User has token but not in Redux state, redirect to login
+      // This will be handled by the auth system
+    }
+  }, [user]);
 
   const filteredTasks = useMemo(() => {
     let filtered = tasks.filter((task) => {
@@ -358,28 +369,56 @@ export default function TodoApp() {
             </p>
           </div>
           <div className="flex items-center gap-4">
-            <div>
+            <div className="flex items-center gap-2">
               <User className="h-4 w-4" />
-              {/* {User?.email} */}
+              {user ? (
+                <span className="text-sm text-muted-foreground">
+                  {user.name}
+                </span>
+              ) : (
+                <span className="text-sm text-muted-foreground">Guest</span>
+              )}
             </div>
-            <div className="flex items-center gap-2"> 
-
-            <ThemeToggle />
-            <Button size='sm' onClick={() => setIsAddDialogOpen(true)} className="gap-2 cursor-pointer">
-              <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">Add Task</span>
-              <kbd className="hidden sm:inline-flex px-1.5 font-mono h-5 select-none items-center gap-1 rounded border bg-muted text-[10px] font-medium text-muted-foreground ">
-                <span>⌘</span>N
-              </kbd>
-            </Button>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <Button
+                size="sm"
+                onClick={() => setIsAddDialogOpen(true)}
+                className="gap-2 cursor-pointer"
+              >
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">Add Task</span>
+                <kbd className="hidden sm:inline-flex px-1.5 font-mono h-5 select-none items-center gap-1 rounded border bg-muted text-[10px] font-medium text-muted-foreground ">
+                  <span>⌘</span>N
+                </kbd>
+              </Button>
             </div>
             <div>
-              <Button variant='outline' size="sm" className=" bg-transparent cursor-pointer">
-                <Link className="flex items-center gap-2" href="/auth/login">
-                <LogIn className="h-4 w-4" />
-                Login
-                </Link>
-              </Button>
+              {user ? (
+                <Button
+                  onClick={() => dispatch(logout())}
+                  variant="outline"
+                  size="sm"
+                  className="bg-transparent cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span className=" hidden sm:inline-block">Logout</span>
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-transparent cursor-pointer"
+                >
+                  <Link
+                    className="w-full flex items-center gap-2"
+                    href="/auth/login"
+                  >
+                    <LogIn className="h-4 w-4" />
+                    <span className="hidden sm:inline-block">Login</span>
+                  </Link>
+                </Button>
+              )}
             </div>
           </div>
         </div>

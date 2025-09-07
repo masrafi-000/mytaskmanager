@@ -10,9 +10,11 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAppDispatch, useAppSelector } from "@/lib/hooks/redux";
+import { signinUser } from "@/lib/store/authSlice";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { BsLinkedin } from "react-icons/bs";
 import { FcGoogle } from "react-icons/fc";
 import { SiGithub } from "react-icons/si";
@@ -21,8 +23,32 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  const dispatch = useAppDispatch();
+  const {
+    loading,
+    error: authError,
+    user,
+  } = useAppSelector((state) => state.auth);
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    dispatch(signinUser({ email, password }));
+  };
+
+  useEffect(() => {
+    if (user) {
+      router.push("/");
+    }
+  }, [user, router]);
+
+  useEffect(() => {
+    if (authError) {
+      setError(authError);
+    }
+  }, [authError]);
 
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
@@ -35,6 +61,7 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            <form onSubmit={handleSubmit}>
               <div className="flex flex-col space-y-4">
                 <div className="grid gap-2">
                   <Label htmlFor="email">
@@ -58,12 +85,12 @@ export default function LoginPage() {
                     type="password"
                     required
                     value={password}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => setPassword(e.target.value)}
                   />
                 </div>
                 {error && <p className="text-sm text-red-500">{error}</p>}
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Logging in..." : "Login"}
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? "Logging in..." : "Login"}
                 </Button>
                 <hr />
                 <p className="text-center text-sm text-gray-700">
@@ -93,7 +120,8 @@ export default function LoginPage() {
                   Sign up
                 </Link>
               </div>
-            </CardContent>
+            </form>
+          </CardContent>
         </Card>
       </div>
     </div>

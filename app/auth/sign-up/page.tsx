@@ -9,19 +9,44 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useAppDispatch, useAppSelector } from "@/lib/hooks/redux";
+import { signupUser } from "@/lib/store/authSlice";
 import { Label } from "@radix-ui/react-label";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { FormEvent, useEffect, useState } from "react";
 import { BsLinkedin } from "react-icons/bs";
 import { FcGoogle } from "react-icons/fc";
 import { SiGithub } from "react-icons/si";
 
 export default function SignUpPage() {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [formError, setFormError] = useState("");
+
+  const dispatch = useAppDispatch();
+  const { loading, error, success } = useAppSelector((state) => state.auth);
+  const router = useRouter();
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    setFormError("");
+
+    if (password !== repeatPassword) {
+      setFormError("Passwords do not match");
+      return;
+    }
+
+    dispatch(signupUser({ name, email, password, repeatPassword }));
+  };
+
+  useEffect(() => {
+    if (success) {
+      router.push("/auth/check-email");
+    }
+  }, [success, router]);
 
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
@@ -32,8 +57,21 @@ export default function SignUpPage() {
             <CardDescription>Create a new account</CardDescription>
           </CardHeader>
           <CardContent>
-            <form action="">
+            <form onSubmit={handleSubmit}>
               <div className="flex flex-col gap-3">
+                <div className="grid gap-2">
+                  <Label htmlFor="name">
+                    Full Name<span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    placeholder="Enter your full name"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </div>
                 <div className="grid gap-2">
                   <Label htmlFor="email">
                     Email<span className="text-red-500">*</span>
@@ -71,9 +109,12 @@ export default function SignUpPage() {
                     onChange={(e) => setRepeatPassword(e.target.value)}
                   />
                 </div>
+                {formError && (
+                  <p className="text-sm text-red-500">{formError}</p>
+                )}
                 {error && <p className="text-sm text-red-500">{error}</p>}
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Creating account..." : "Sign up"}
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? "Creating account..." : "Sign up"}
                 </Button>
                 <hr />
                 <p className="text-center text-sm text-gray-700">
