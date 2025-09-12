@@ -22,10 +22,12 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks/redux";
 import { logout } from "@/lib/store/authSlice";
 import {
-  addTask,
+  clearError,
   clearSelection,
-  deleteTask,
+  createTodo,
   deleteTasks,
+  deleteTodo,
+  fetchTodos,
   selectAllTasks,
   setActiveTab,
   setFilterPriority,
@@ -38,6 +40,7 @@ import {
   toggleComplete,
   toggleTaskSelection,
   updateTask,
+  updateTodo,
 } from "@/lib/store/todoSlice";
 import { TabsContent } from "@radix-ui/react-tabs";
 import {
@@ -52,6 +55,7 @@ import {
   Plus,
   Trash2,
   User,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -60,6 +64,8 @@ export default function TodoApp() {
   const dispatch = useAppDispatch();
   const {
     tasks,
+    loading,
+    error,
     searchQuery,
     filterPriority,
     filterProject,
@@ -104,7 +110,7 @@ export default function TodoApp() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Check if user is already logged in from localStorage
+  // Check if user is already logged in from localStorage and fetch todos
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token && !user) {
@@ -112,6 +118,13 @@ export default function TodoApp() {
       // This will be handled by the auth system
     }
   }, [user]);
+
+  // Fetch todos when user is logged in
+  useEffect(() => {
+    if (user) {
+      dispatch(fetchTodos());
+    }
+  }, [user, dispatch]);
 
   const filteredTasks = useMemo(() => {
     let filtered = tasks.filter((task) => {
@@ -285,7 +298,7 @@ export default function TodoApp() {
     };
   }, [tasks]);
 
-  const handleAddTask = (newTaskData: {
+  const handleAddTask = async (newTaskData: {
     title: string;
     description: string;
     priority: "low" | "medium" | "high";
@@ -295,32 +308,60 @@ export default function TodoApp() {
   }) => {
     setIsSubmitting(true);
 
-    dispatch(
-      addTask({
-        title: newTaskData.title.trim(),
-        description: newTaskData.description.trim(),
-        priority: newTaskData.priority,
-        due_date: newTaskData.dueDate || null,
-        tags: newTaskData.tags,
-        project: newTaskData.project.trim() || null,
-        completed: false,
-      })
-    );
+    try {
+      await dispatch(
+        createTodo({
+          title: newTaskData.title.trim(),
+          description: newTaskData.description.trim(),
+          priority: newTaskData.priority,
+          due_date: newTaskData.dueDate || null,
+          tags: newTaskData.tags,
+          project: newTaskData.project.trim() || null,
+          completed: false,
+        })
+      ).unwrap();
 
-    setIsAddDialogOpen(false);
-    setIsSubmitting(false);
+      setIsAddDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to create todo:", error);
+      // Error is handled by Redux state
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleUpdateTask = (updatedTask: Task) => {
-    dispatch(updateTask({ id: updatedTask.id, updates: updatedTask }));
+  const handleUpdateTask = async (updatedTask: Task) => {
+    try {
+      await dispatch(
+        updateTodo({
+          id: updatedTask.id,
+          taskData: {
+            title: updatedTask.title,
+            description: updatedTask.description,
+            priority: updatedTask.priority,
+            due_date: updatedTask.due_date,
+            tags: updatedTask.tags,
+            project: updatedTask.project,
+            completed: updatedTask.completed,
+          },
+        })
+      ).unwrap();
 
-    setEditingTask(null);
+      setEditingTask(null);
+    } catch (error) {
+      console.error("Failed to update todo:", error);
+      // Error is handled by Redux state
+    }
   };
 
-  const handleDeleteTask = (id: string) => {
-    dispatch(deleteTask(id));
-
-    setTaskToDelete(null);
+  const handleDeleteTask = async (id: string) => {
+    try {
+      await dispatch(deleteTodo(id)).unwrap();
+      setTaskToDelete(null);
+    } catch (error) {
+      console.error("Failed to delete todo:", error);
+      // Error is handled by Redux state
+    }
   };
 
   const handleToggleComplete = (id: string) => {
@@ -358,6 +399,24 @@ export default function TodoApp() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-6 max-w-4xl">
+        {/* Error Banner */}
+        {error && (
+          <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 text-destructive" />
+              <p className="text-sm text-destructive">{error}</p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => dispatch(clearError())}
+                className="ml-auto text-destructive hover:text-destructive"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
@@ -515,13 +574,19 @@ export default function TodoApp() {
                   <Badge variant="secondary">
                     {selectedTasks.length} selected
                   </Badge>
-                  <Button variant="outline" size="sm" onClick={handleSelectAll}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSelectAll}
+                    className="cursor-pointer dark:hover:text-white hover:bg-green-600"
+                  >
                     Select All Visible
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handleClearSelection}
+                    className=" cursor-pointer hover:bg-red-600 dark:hover:text-white"
                   >
                     Clear Selection
                   </Button>
@@ -531,7 +596,7 @@ export default function TodoApp() {
                     variant="outline"
                     size="sm"
                     onClick={handleBulkMarkComplete}
-                    className="gap-2 bg-transparent"
+                    className="gap-2 bg-transparent dark:hover:text-white hover:bg-amber-600 cursor-pointer"
                   >
                     <Check className="h-4 w-4" />
                     Mark Complete
@@ -540,7 +605,7 @@ export default function TodoApp() {
                     variant="outline"
                     size="sm"
                     onClick={() => setBulkDeleteConfirm(true)}
-                    className="gap-2 text-destructive hover:text-destructive"
+                    className="gap-2 text-destructive  cursor-pointer hover:bg-red-700 hover:text-white"
                   >
                     <Trash2 className="h-4 w-4" />
                     Delete
@@ -613,15 +678,26 @@ export default function TodoApp() {
           </div>
 
           <TabsContent value={activeTab} className="space-y-4">
-            <TaskList
-              tasks={filteredTasks}
-              selectedTasks={selectedTasks}
-              onToggleComplete={handleToggleComplete}
-              onEdit={setEditingTask}
-              onDelete={setTaskToDelete}
-              onToggleSelection={handleToggleSelection}
-              activeTab={activeTab}
-            />
+            {loading ? (
+              <Card className="border-dashed">
+                <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
+                  <p className="text-sm text-muted-foreground">
+                    Loading tasks...
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <TaskList
+                tasks={filteredTasks}
+                selectedTasks={selectedTasks}
+                onToggleComplete={handleToggleComplete}
+                onEdit={setEditingTask}
+                onDelete={setTaskToDelete}
+                onToggleSelection={handleToggleSelection}
+                activeTab={activeTab}
+              />
+            )}
           </TabsContent>
         </Tabs>
 

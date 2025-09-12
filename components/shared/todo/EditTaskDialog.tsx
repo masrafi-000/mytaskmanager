@@ -71,7 +71,7 @@ export default function EditTaskDialog(props: EditTaskDialogProps) {
         </DialogHeader>
 
         <div className="space-y-4">
-          <div>
+          <div className="flex flex-col gap-2">
             <Label htmlFor="edit-title">Title</Label>
             <Input
               id="edit-title"
@@ -83,7 +83,7 @@ export default function EditTaskDialog(props: EditTaskDialogProps) {
             />
           </div>
 
-          <div>
+          <div className="flex flex-col gap-2">
             <Label htmlFor="edit-description">Description</Label>
             <Textarea
               id="edit-description"
@@ -96,8 +96,8 @@ export default function EditTaskDialog(props: EditTaskDialogProps) {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col gap-2">
               <Label htmlFor="edit-priority">Priority</Label>
               <Select
                 value={editingTask.priority}
@@ -116,7 +116,7 @@ export default function EditTaskDialog(props: EditTaskDialogProps) {
               </Select>
             </div>
 
-            <div>
+            <div className="flex flex-col gap-2">
               <Label htmlFor="edit-dueDate">Due Date</Label>
               <Input
                 id="edit-dueDate"
@@ -132,7 +132,7 @@ export default function EditTaskDialog(props: EditTaskDialogProps) {
             </div>
           </div>
 
-          <div>
+          <div className=" flex flex-col gap-2">
             <Label htmlFor="edit-project">Project</Label>
             <Input
               id="edit-project"
@@ -149,7 +149,7 @@ export default function EditTaskDialog(props: EditTaskDialogProps) {
 
           <div>
             <Label htmlFor="edit-tags">Tags</Label>
-            <div>
+            <div className="flex items-center justify-center gap-4 my-2">
               <Input
                 id="edit-tags"
                 value={newTagInput}
@@ -167,6 +167,7 @@ export default function EditTaskDialog(props: EditTaskDialogProps) {
                 variant="outline"
                 size="sm"
                 onClick={addTag}
+                className="dark:hover:text-white dark:hover:bg-blue-600"
               >
                 <Plus className="h-4 w-4" />
               </Button>
@@ -189,8 +190,8 @@ export default function EditTaskDialog(props: EditTaskDialogProps) {
             </div>
           </div>
 
-          <div>
-            <Button variant="outline" onClick={onCancel}>
+          <div className=" flex justify-end gap-4">
+            <Button className="dark:hover:text-white dark:hover:bg-red-500" variant="outline" onClick={onCancel}>
               Cancel
             </Button>
             <Button onClick={handleSave}>Save Changes</Button>

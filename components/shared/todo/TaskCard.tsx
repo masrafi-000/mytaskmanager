@@ -66,7 +66,7 @@ export default function TaskCard(props: TaskCardProps) {
           <Checkbox
             checked={isSelected}
             onCheckedChange={() => onToggleSelection(task.id)}
-            className=" mt-1"
+            className=" mt-1 border  border-red-500 "
           />
 
           <div className="flex-1 min-w-0">

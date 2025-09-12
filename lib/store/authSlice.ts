@@ -1,4 +1,4 @@
-import api from "@/services/api";
+import { authAPI } from "@/services/api";
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface User {
@@ -52,10 +52,7 @@ export const signupUser = createAsyncThunk<
   { rejectValue: string }
 >("auth/sign-up", async (userData, { rejectWithValue }) => {
   try {
-    const response = await api.post<AuthSuccessResponse>(
-      "/auth/sign-up",
-      userData
-    );
+    const response = await authAPI.signup(userData);
     return response.data;
   } catch (error) {
     const err = error as ApiErrorShape;
@@ -71,10 +68,7 @@ export const signinUser = createAsyncThunk<
   { rejectValue: string }
 >("auth/login", async (userData, { rejectWithValue }) => {
   try {
-    const response = await api.post<AuthSuccessResponse>(
-      "/auth/login",
-      userData
-    );
+    const response = await authAPI.login(userData);
     localStorage.setItem("token", response.data.token);
     return response.data;
   } catch (error) {
